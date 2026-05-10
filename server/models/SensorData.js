@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const sensorDataSchema = new mongoose.Schema({
+    tankId: {
+        type: String,
+        required: true
+    },
     waterLevel: {
         type: Number,
         required: true
