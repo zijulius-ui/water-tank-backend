@@ -34,7 +34,7 @@ mongoose.connect(process.env.MONGO_URI)
 .catch((err) => console.log("MongoDB Error:", err));
 
 /* -----------------------------
-   EMAIL COOLDOWN CONTROL (NEW)
+   EMAIL COOLDOWN CONTROL
 ------------------------------*/
 let lastAlertTime = 0;
 const ALERT_COOLDOWN = 30000; // 30 seconds
@@ -70,7 +70,7 @@ app.get("/test-email", async (req, res) => {
 app.post("/api/sensors", async (req, res) => {
     try {
 
-	console.log(req.body);
+        console.log(req.body);
 
         const data = new SensorData(req.body);
         await data.save();
@@ -78,25 +78,29 @@ app.post("/api/sensors", async (req, res) => {
         const now = Date.now();
         const leakDetected = req.body.leakDetected === true;
 
-        // ONLY SEND EMAIL IF:
-        // - leak detected
-        // - cooldown passed
-        if (leakDetected && (now - lastAlertTime > ALERT_COOLDOWN)) {
+        const user = await User.findOne({ tankId: req.body.tankId });
 
-            const user = await User.findOne({ tankId: req.body.tankId });
-
-            if (user) {
-                await sendLeakAlert(user.email, req.body);
-                lastAlertTime = now; // update timer
-            }
-        }
-
-        io.emit("sensor-update", data);
-
+        //RESPOND IMMEDIATELY (FIXES ESP32 -11)
         res.status(201).json({
             message: "Sensor data saved successfully",
             data
         });
+
+        //NON-BLOCKING EMAIL (FIXED)
+        if (leakDetected && (now - lastAlertTime > ALERT_COOLDOWN) && user) {
+
+            sendLeakAlert(user.email, req.body)
+                .then(() => {
+                    console.log("Leak email sent!");
+                })
+                .catch((err) => {
+                    console.log("Email failed:", err);
+                });
+
+            lastAlertTime = now;
+        }
+
+        io.emit("sensor-update", data);
 
     } catch (err) {
         res.status(500).json({ error: err.message });
