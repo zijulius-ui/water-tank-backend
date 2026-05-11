@@ -1,129 +1,139 @@
-require("dotenv").config();
+import dns from "dns";
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
-const sendLeakAlert = require("./email");
-const User = require("./models/User");
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
+import dotenv from "dotenv";
+dotenv.config();
 
-const SensorData = require("./models/SensorData");
+import sendLeakAlert from "./email.js";
+import User from "./models/User.js";
+import SensorData from "./models/SensorData.js";
 
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
+
+import authRoutes from "./routes/auth.js";
+
+console.log("AUTH ROUTES LOADED");
+
+/* -----------------------------
+   APP INIT
+------------------------------*/
 const app = express();
 
-// Middleware
+/* -----------------------------
+   MIDDLEWARE
+------------------------------*/
 app.use(cors());
 app.use(express.json());
 
-// HTTP server
+/* -----------------------------
+   ROUTES
+------------------------------*/
+app.use("/api", authRoutes);
+
+/* -----------------------------
+   HTTP SERVER
+------------------------------*/
 const server = http.createServer(app);
 
-// Socket.IO
+/* -----------------------------
+   SOCKET.IO
+------------------------------*/
 const io = new Server(server, {
-    cors: {
-        origin: "*"
-    }
+  cors: { origin: "*" }
 });
 
 /* -----------------------------
    CONNECT TO MONGODB
 ------------------------------*/
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log("MongoDB Connected Successfully"))
-.catch((err) => console.log("MongoDB Error:", err));
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected Successfully"))
+  .catch((err) => console.log("MongoDB Error:", err));
 
 /* -----------------------------
-   EMAIL COOLDOWN CONTROL
+   EMAIL COOLDOWN
 ------------------------------*/
 let lastAlertTime = 0;
-const ALERT_COOLDOWN = 30000; // 30 seconds
+const ALERT_COOLDOWN = 30000;
 
 /* -----------------------------
    HOME ROUTE
 ------------------------------*/
 app.get("/", (req, res) => {
-    res.send("Water Tank Monitoring Backend Running");
+  res.send("Water Tank Monitoring Backend Running");
 });
 
 /* -----------------------------
-   TEST EMAIL ROUTE
+   TEST EMAIL
 ------------------------------*/
 app.get("/test-email", async (req, res) => {
-    try {
-        await sendLeakAlert("juliuszimran@gmail.com", {
-            waterLevel: 5,
-            temperature: 28,
-            humidity: 80,
-            leakDetected: true
-        });
+  try {
+    await sendLeakAlert("juliuszimran@gmail.com", {
+      waterLevel: 5,
+      temperature: 28,
+      humidity: 80,
+      leakDetected: true
+    });
 
-        res.send("Email test sent successfully");
-    } catch (err) {
-        res.status(500).send(err.message);
-    }
+    res.send("Email test sent successfully");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 /* -----------------------------
    POST SENSOR DATA
 ------------------------------*/
 app.post("/api/sensors", async (req, res) => {
-    try {
+  try {
+    const data = new SensorData(req.body);
+    await data.save();
 
-        console.log(req.body);
+    const now = Date.now();
+    const leakDetected = req.body.leakDetected === true;
 
-        const data = new SensorData(req.body);
-        await data.save();
+    const user = await User.findOne({ tankId: req.body.tankId });
 
-        const now = Date.now();
-        const leakDetected = req.body.leakDetected === true;
+    res.status(201).json({
+      message: "Sensor data saved successfully",
+      data
+    });
 
-        const user = await User.findOne({ tankId: req.body.tankId });
+    if (leakDetected && now - lastAlertTime > ALERT_COOLDOWN && user) {
+      sendLeakAlert(user.email, req.body)
+        .then(() => console.log("Leak email sent!"))
+        .catch((err) => console.log("Email failed:", err));
 
-        //RESPOND IMMEDIATELY (FIXES ESP32 -11)
-        res.status(201).json({
-            message: "Sensor data saved successfully",
-            data
-        });
-
-        //NON-BLOCKING EMAIL (FIXED)
-        if (leakDetected && (now - lastAlertTime > ALERT_COOLDOWN) && user) {
-
-            sendLeakAlert(user.email, req.body)
-                .then(() => {
-                    console.log("Leak email sent!");
-                })
-                .catch((err) => {
-                    console.log("Email failed:", err);
-                });
-
-            lastAlertTime = now;
-        }
-
-        io.emit("sensor-update", data);
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+      lastAlertTime = now;
     }
+
+    io.emit("sensor-update", data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /* -----------------------------
    GET SENSOR DATA
 ------------------------------*/
 app.get("/api/sensors", async (req, res) => {
-    try {
-        const data = await SensorData.find().sort({ createdAt: -1 });
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+  try {
+    const data = await SensorData.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /* -----------------------------
    SOCKET CONNECTION
 ------------------------------*/
 io.on("connection", (socket) => {
-    console.log("Client connected");
+  console.log("Client connected");
 });
 
 /* -----------------------------
@@ -132,5 +142,5 @@ io.on("connection", (socket) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

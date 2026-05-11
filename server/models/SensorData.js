@@ -1,34 +1,16 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-const sensorDataSchema = new mongoose.Schema({
-    tankId: {
-        type: String,
-        required: true
-    },
-    waterLevel: {
-        type: Number,
-        required: true
-    },
-    temperature: {
-        type: Number,
-        required: true
-    },
-    pressure: {
-        type: Number,
-        required: true
-    },
-    humidity: {
-        type: Number,
-        required: true
-    },
-    leakDetected: {
-        type: Boolean,
-        default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+const sensorSchema = new mongoose.Schema(
+  {
+    tankId: String,
+    waterLevel: Number,
+    temperature: Number,
+    humidity: Number,
+    leakDetected: Boolean
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("SensorData", sensorDataSchema);
+const SensorData = mongoose.model("SensorData", sensorSchema);
+
+export default SensorData;
