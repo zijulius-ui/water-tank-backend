@@ -24,42 +24,7 @@ function App() {
   const [isLogin, setIsLogin] = useState(true);
 
 const fetchData = async () => {
-  try {
-    await axios.post(
-  "https://water-tank-backend-1-mjvz.onrender.com/api/sensors",
-  {
-    waterLevel: 10,
-    temperature: 30,
-    humidity: 60,
-    leakDetected: true,
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  }
-);
-
-    const data = res.data;
-
-    if (data.length > 0) {
-      const newest = data[0];
-
-      if (newest.leakDetected && (!latest || !latest.leakDetected)) {
-        setShowAlert(true);
-        setTimeout(() => setShowAlert(false), 4000);
-      }
-
-      setLatest(newest);
-      setHistory(data.slice(0, 10).reverse());
-    }
-
-    setLoading(false);
-  } catch (err) {
-    console.log(err.message);
-    setLoading(false);
-  }
-};
+  
 
   useEffect(() => {
     fetchData();
@@ -82,6 +47,7 @@ const fetchData = async () => {
       case 3: return "rd";
       default: return "th";
     }
+  }
   };
 
   const time = d.toLocaleTimeString("en-US", {
@@ -159,7 +125,7 @@ const valueStyle = {
             fontWeight: "bold",
           }}
         >
-          ⚠️ Leak Detected in Tank A1!
+          ⚠️ Leak Detected in the Tank!
         </div>
       )}
 

@@ -34,23 +34,41 @@ export default function Login({ setLoggedIn }) {
     setSuccess("");
 
     try {
-      const res = await axios.post(
-        "https://water-tank-backend-1-mjvz.onrender.com/api/login",
-        { email, password }
-      );
+  const res = await axios.post(
+    "https://water-tank-backend-1-mjvz.onrender.com/api/login",
+    { email, password }
+  );
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("email", email);
+  localStorage.setItem("token", res.data.token);
+  localStorage.setItem("email", email);
 
-      setSuccess("Login successful!");
-      setLoggedIn(true);
-    } catch (err) {
-      setError(
-        err.response?.data?.msg || "Login failed. Check your details."
-      );
-    } finally {
-      setLoading(false);
+  // SEND TEST SENSOR DATA TO BACKEND
+  await axios.post(
+    console.log("LOGIN REQUEST SENT TO RENDER");
+    "https://water-tank-backend-1-mjvz.onrender.com/api/sensors",
+    {
+      waterLevel: 10,
+      temperature: 30,
+      humidity: 60,
+      leakDetected: false,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${res.data.token}`,
+      },
     }
+  );
+
+  setSuccess("Login successful!");
+  setLoggedIn(true);
+
+} catch (err) {
+  setError(
+    err.response?.data?.msg || "Login failed. Check your details."
+  );
+} finally {
+  setLoading(false);
+}
   };
 
   // 🔁 SWITCH TO SIGNUP

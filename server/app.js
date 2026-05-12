@@ -18,18 +18,28 @@ import User from "./models/User.js";
 import SensorData from "./models/SensorData.js";
 import authRoutes from "./routes/auth.js";
 
+const auth = (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ msg: "No token" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded;
+
+    next();
+
+  } catch (err) {
+    return res.status(401).json({ msg: "Invalid token" });
+  }
+};
+
 console.log("EMAIL MODULE LOADED");
 
-const auth = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
 
-  if (!token) return res.status(401).json({ msg: "No token" });
-
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  req.user = decoded;
-
-  next();
-};
 
 /* -----------------------------
    INIT

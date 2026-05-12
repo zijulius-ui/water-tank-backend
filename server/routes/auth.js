@@ -12,6 +12,8 @@ const router = express.Router();
    LOGIN ROUTE
 ------------------------------*/
 router.post("/login", async (req, res) => {
+  console.log("LOGIN REQUEST RECEIVED");
+
   const { email, password } = req.body;
 
   try {
@@ -30,7 +32,7 @@ router.post("/login", async (req, res) => {
    
     const token = jwt.sign(
       { email: user.email },
-      "process.env.JWT_SECRET", // ⚠️ move this to .env later
+      "process.env.JWT_SECRET", 
       { expiresIn: "7d" }
     );
 

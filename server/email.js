@@ -6,27 +6,22 @@ export const sendLeakEmail = async (userEmail) => {
       host: "smtp.gmail.com",
       port: 587,
       secure: false,
-      requireTLS: true,
-
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-
-      // 🔥 FORCE IPv4 (THIS FIXES YOUR ERROR)
-      family: 4,
     });
 
-    await transporter.verify();
+    await transporter.verify(); // 👈 important debug step
 
-    const info = await transporter.sendMail({
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: userEmail,
       subject: "⚠️ Water Tank Leak Alert",
       text: "Leak detected in your tank! Please check immediately.",
     });
 
-    console.log("EMAIL SENT:", info.messageId);
+    console.log("EMAIL SENT TO:", userEmail);
   } catch (err) {
     console.log("EMAIL FAILED:", err.message);
   }
