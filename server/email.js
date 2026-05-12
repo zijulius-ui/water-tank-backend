@@ -12,7 +12,7 @@ export const sendLeakEmail = async (userEmail) => {
       },
     });
 
-    await transporter.verify(); // 👈 important debug step
+    await transporter.verify(); 
 
     await transporter.sendMail({
       from: process.env.EMAIL_USER,

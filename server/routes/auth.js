@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 console.log("AUTH ROUTE FILE ACTIVE");
-console.log("SIGNUP ROUTE LOADED");
 
 const router = express.Router();
 
@@ -29,10 +28,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ msg: "Invalid password" });
     }
 
-   
     const token = jwt.sign(
       { email: user.email },
-      "process.env.JWT_SECRET", 
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -51,11 +49,10 @@ router.post("/login", async (req, res) => {
    SIGNUP ROUTE
 ------------------------------*/
 router.post("/signup", async (req, res) => {
-console.log("SIGNUP REQUEST RECEIVED");
+  console.log("SIGNUP REQUEST RECEIVED");
+
   try {
     const { email, password } = req.body;
-
-    console.log("SIGNUP REQUEST:", email, tankId);
 
     const existingUser = await User.findOne({ email });
 
@@ -67,8 +64,7 @@ console.log("SIGNUP REQUEST RECEIVED");
 
     const newUser = await User.create({
       email,
-      password: hashedPassword,
-
+      password: hashedPassword
     });
 
     console.log("USER CREATED:", newUser.email);
@@ -76,10 +72,9 @@ console.log("SIGNUP REQUEST RECEIVED");
     res.json({ msg: "User created successfully" });
 
   } catch (err) {
-    console.log(err);
+    console.log("SIGNUP ERROR:", err);
     res.status(500).json({ error: err.message });
   }
 });
-
 
 export default router;

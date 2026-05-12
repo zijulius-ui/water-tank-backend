@@ -35,6 +35,7 @@ export default function Login({ setLoggedIn }) {
 
     try {
   const res = await axios.post(
+    
     "https://water-tank-backend-1-mjvz.onrender.com/api/login",
     { email, password }
   );
@@ -44,7 +45,7 @@ export default function Login({ setLoggedIn }) {
 
   // SEND TEST SENSOR DATA TO BACKEND
   await axios.post(
-    console.log("LOGIN REQUEST SENT TO RENDER");
+    
     "https://water-tank-backend-1-mjvz.onrender.com/api/sensors",
     {
       waterLevel: 10,
