@@ -18,11 +18,20 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
 
+    console.log("USER FOUND:", user);
+
     if (!user) {
       return res.status(400).json({ msg: "User not found" });
     }
 
+    // 👇 PUT YOUR LOGS HERE
+    console.log("INPUT PASSWORD:", password);
+    console.log("DB HASH:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
+
+    // 👇 AND THIS ONE AFTER COMPARE
+    console.log("MATCH:", isMatch);
 
     if (!isMatch) {
       return res.status(400).json({ msg: "Invalid password" });
@@ -34,13 +43,14 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({
+    return res.json({
       msg: "Login success",
       token,
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ error: err.message });
   }
 });
 

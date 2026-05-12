@@ -2,6 +2,8 @@ import dns from "dns";
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 process.env.NODE_OPTIONS = "--dns-result-order=ipv4first";
 
+
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -17,6 +19,8 @@ import { sendLeakEmail } from "./email.js";
 import User from "./models/User.js";
 import SensorData from "./models/SensorData.js";
 import authRoutes from "./routes/auth.js";
+
+
 
 const auth = (req, res, next) => {
   try {
@@ -45,6 +49,8 @@ console.log("EMAIL MODULE LOADED");
    INIT
 ------------------------------*/
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 const server = http.createServer(app);
 
 const io = new Server(server, {
