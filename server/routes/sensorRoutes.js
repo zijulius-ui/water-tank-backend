@@ -1,3 +1,5 @@
+import { sendLeakEmail } from "../utils/sendEmail.js";
+
 app.post("/api/sensors", async (req, res) => {
     try {
         const newReading = new SensorData(req.body);

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 console.log("AUTH ROUTE FILE ACTIVE");
+console.log("SIGNUP ROUTE LOADED");
 
 const router = express.Router();
 
@@ -13,21 +14,34 @@ const router = express.Router();
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  console.log("LOGIN REQUEST:", email, password);
+  try {
+    const user = await User.findOne({ email });
 
-  const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ msg: "User not found" });
+    }
 
-  console.log("FOUND USER:", user);
+    const isMatch = await bcrypt.compare(password, user.password);
 
-  if (!user) return res.status(400).json({ msg: "User not found" });
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Invalid password" });
+    }
 
-  const isMatch = await bcrypt.compare(password, user.password);
+   
+    const token = jwt.sign(
+      { email: user.email },
+      "process.env.JWT_SECRET", // ⚠️ move this to .env later
+      { expiresIn: "7d" }
+    );
 
-  console.log("PASSWORD MATCH:", isMatch);
+    res.json({
+      msg: "Login success",
+      token,
+    });
 
-  if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
-
-  res.json({ msg: "Login success" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
@@ -35,8 +49,9 @@ router.post("/login", async (req, res) => {
    SIGNUP ROUTE
 ------------------------------*/
 router.post("/signup", async (req, res) => {
+console.log("SIGNUP REQUEST RECEIVED");
   try {
-    const { email, password, tankId } = req.body;
+    const { email, password } = req.body;
 
     console.log("SIGNUP REQUEST:", email, tankId);
 
@@ -51,7 +66,7 @@ router.post("/signup", async (req, res) => {
     const newUser = await User.create({
       email,
       password: hashedPassword,
-      tankId
+
     });
 
     console.log("USER CREATED:", newUser.email);

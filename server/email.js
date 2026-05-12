@@ -1,26 +1,33 @@
 import nodemailer from "nodemailer";
 
-export default async function sendLeakAlert(email, data) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
+export const sendLeakEmail = async (userEmail) => {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      requireTLS: true,
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: "⚠️ Water Leak Detected!",
-    html: `
-      <h2>Leak Alert 🚨</h2>
-      <p><b>Tank ID:</b> ${data.tankId}</p>
-      <p><b>Water Level:</b> ${data.waterLevel}</p>
-      <p><b>Temperature:</b> ${data.temperature}</p>
-      <p><b>Leak Detected:</b> ${data.leakDetected}</p>
-    `
-  };
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
 
-  await transporter.sendMail(mailOptions);
-}
+      // 🔥 FORCE IPv4 (THIS FIXES YOUR ERROR)
+      family: 4,
+    });
+
+    await transporter.verify();
+
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: userEmail,
+      subject: "⚠️ Water Tank Leak Alert",
+      text: "Leak detected in your tank! Please check immediately.",
+    });
+
+    console.log("EMAIL SENT:", info.messageId);
+  } catch (err) {
+    console.log("EMAIL FAILED:", err.message);
+  }
+};
