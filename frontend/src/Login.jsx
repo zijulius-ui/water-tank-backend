@@ -10,10 +10,10 @@ export default function Login({ setLoggedIn }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // 👤 STORED USER
+  // STORED USER
   const storedEmail = localStorage.getItem("email");
 
-  // 🔐 AUTO LOGIN ON REFRESH
+  // AUTO LOGIN ON REFRESH
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -21,7 +21,7 @@ export default function Login({ setLoggedIn }) {
     }
   }, [setLoggedIn]);
 
-  // 🚪 LOGOUT FUNCTION (reusable later in Settings too)
+  //LOGOUT FUNCTION (reusable later in Settings too)
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
@@ -72,7 +72,7 @@ export default function Login({ setLoggedIn }) {
 }
   };
 
-  // 🔁 SWITCH TO SIGNUP
+  // SWITCH TO SIGNUP
   if (showSignup) {
     return <Signup setShowSignup={setShowSignup} />;
   }

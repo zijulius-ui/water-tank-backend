@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import User from "./models/User.js";
 
+//Creating Test User in Database
+
 const password = await bcrypt.hash("123456", 10);
 
 await User.create({

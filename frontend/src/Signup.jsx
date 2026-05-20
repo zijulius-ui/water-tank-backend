@@ -12,7 +12,7 @@ export default function Signup({ setShowSignup }) {
     setError("");
     setSuccess("");
 
-    // ✅ VALIDATION (THIS FIXES YOUR "EMPTY ACCOUNT" BUG)
+    // VALIDATION (THIS FIXES YOUR "EMPTY ACCOUNT" BUG)
     if (!email.trim() || !password.trim()) {
       setError("Please fill in all fields.");
       return;
@@ -94,7 +94,7 @@ export default function Signup({ setShowSignup }) {
           {loading ? "Creating..." : "Create Account"}
         </button>
 
-        {/* ✅ RETURN TO LOGIN BUTTON (YOU REQUESTED THIS) */}
+        {/* RETURN TO LOGIN BUTTON */}
         <button
           onClick={() => setShowSignup(false)}
           style={{
